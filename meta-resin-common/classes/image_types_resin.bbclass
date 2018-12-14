@@ -204,7 +204,7 @@ IMAGE_CMD_resinos-img () {
     # resin-boot
     #
     if [ "${PARTITION_TABLE_TYPE}" = "msdos" ]; then
-        OPTS="primary fat16"
+        OPTS="primary fat32"
     elif [ "${PARTITION_TABLE_TYPE}" = "gpt" ]; then
         OPTS="resin-boot"
     fi
@@ -270,7 +270,7 @@ IMAGE_CMD_resinos-img () {
     # resin-boot
     RESIN_BOOT_BLOCKS=$(LC_ALL=C parted -s ${RESIN_RAW_IMG} unit b print | grep -E "^(| )${RESIN_BOOT_PN} " | awk '{ print substr($4, 1, length($4 -1)) / 512 /2 }')
     rm -rf ${RESIN_BOOT_FS}
-    mkfs.vfat -n "${RESIN_BOOT_FS_LABEL}" -S 512 -C ${RESIN_BOOT_FS} ${RESIN_BOOT_BLOCKS}
+    mkfs.vfat -n "${RESIN_BOOT_FS_LABEL}" -F 32 -S 512 -C ${RESIN_BOOT_FS} ${RESIN_BOOT_BLOCKS}
     if [ "$(ls -A ${RESIN_BOOT_WORKDIR})" ]; then
         mcopy -i ${RESIN_BOOT_FS} -sv ${RESIN_BOOT_WORKDIR}/* ::
     else
