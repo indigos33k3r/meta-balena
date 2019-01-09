@@ -7,9 +7,10 @@ SECTION = "devel/kernel"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=89aea4e17d99a7cacdbeed46a0096b10"
 
-DEPENDS = " \
+DEPENDS += " \
     virtual/kernel \
     bc-native \
+    bison-native \
     openssl \
     openssl-native \
     util-linux-native \
@@ -18,7 +19,10 @@ DEPENDS = " \
     elfutils \
     "
 
-SRC_URI = "git://github.com/resin-os/module-headers.git;protocol=https"
+SRC_URI = " \
+    git://github.com/resin-os/module-headers.git;protocol=https \
+    file://0001-Fixdep-fix-on-newer-kernels.patch \
+    "
 
 SRCREV = "v0.0.12"
 
@@ -33,6 +37,7 @@ do_configure[noexec] = "1"
 
 do_compile() {
     mkdir -p kernel_modules_headers
+    ls -al kernel_modules_headers
     ${S}/gen_mod_headers ./kernel_modules_headers ${STAGING_KERNEL_DIR} ${DEPLOY_DIR_IMAGE} ${ARCH} ${TARGET_PREFIX} "${CC}" "${HOSTCC}"
 
     # Sanity test

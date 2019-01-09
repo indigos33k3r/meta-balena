@@ -1,0 +1,27 @@
+From 50bac9da215f58fe3a81c1527f3c6b21c5c0a41c Mon Sep 17 00:00:00 2001
+From: Andrei Gherzan <andrei@balena.io>
+Date: Wed, 9 Jan 2019 14:59:30 +0000
+Subject: [PATCH] Fixdep fix on newer kernels
+
+Signed-off-by: Andrei Gherzan <andrei@balena.io>
+Upstream-status: Pending
+---
+ gen_mod_headers | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gen_mod_headers b/gen_mod_headers
+index 3eeb8f0..8a03f50 100755
+--- a/gen_mod_headers
++++ b/gen_mod_headers
+@@ -221,6 +221,8 @@ if [[ -n "$prefix" ]]; then
+ 	sed -i 's|$(obj)/conf|x$(obj)/conf|' scripts/kconfig/Makefile
+ 	if [[ -e tools/build/Makefile ]]; then
+ 		sed -i 's|$(QUIET_LINK)$(HOSTCC) $(LDFLAGS) -o $@ $<|$(QUIET_LINK)$(HOSTCC) $(LDFLAGS) -o fixdep_native $<|' tools/build/Makefile
++		# Since 8b247a92ebd0cda7dec49a6f771d9c4950f3d3ad kernel changed LDFLAGS -> HOSTLDFLAGS
++		sed -i 's|$(QUIET_LINK)$(HOSTCC) $(HOSTLDFLAGS) -o $@ $<|$(QUIET_LINK)$(HOSTCC) $(HOSTLDFLAGS) -o fixdep_native $<|' tools/build/Makefile
+ 	fi
+ 
+ 	# copy objtools fixdep
+-- 
+2.17.1
+
