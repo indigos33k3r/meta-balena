@@ -24,7 +24,7 @@ new_part_idx=$(printf "%x" $new_part_idx)
 printf "[INFO] Switching uboot root partition index to %s..." "$new_part_idx..."
 echo "resin_root_part=$new_part_idx" > /mnt/boot/resinOS_uEnv.txt.new
 echo "upgrade_available=$DURING_UPDATE" >> /mnt/boot/resinOS_uEnv.txt.new
-rm -f /mnt/boot/bootcount.env || true
+echo "bootcount=0" > /mnt/boot/bootcount.env
 
 sync -f /mnt/boot
 mv /mnt/boot/resinOS_uEnv.txt.new /mnt/boot/resinOS_uEnv.txt
