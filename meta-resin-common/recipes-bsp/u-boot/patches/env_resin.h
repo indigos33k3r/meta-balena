@@ -19,6 +19,10 @@
 
 #define RESIN_ENV \
        "resin_env_file=" __stringify(RESIN_ENV_FILE) "\0" \
+       "os_bc_file=" __stringify(OS_BOOTCOUNT_FILE) "\0" \
+       "os_bc_skip=" __stringify(OS_BOOTCOUNT_SKIP) "\0" \
+       "os_bc_inced=0 \0" \
+       "os_bc_lim=" __stringify(OS_BOOTCOUNT_LIMIT) "\0" \
        "resin_flasher_flag_file=" __stringify(RESIN_FLASHER_FLAG_FILE) "\0" \
        "resin_image_flag_file=" __stringify(RESIN_IMAGE_FLAG_FILE) "\0" \
        "resin_uboot_devices=" __stringify(RESIN_UBOOT_DEVICES) "\0" \
@@ -32,10 +36,27 @@
        "resin_load_env_file=" \
                "echo Loading ${resin_env_file} from ${resin_dev_type} device ${resin_dev_index} partition ${resin_boot_part};" \
                "fatload ${resin_dev_type} ${resin_dev_index}:${resin_boot_part} ${resin_kernel_load_addr} ${resin_env_file};\0" \
+       "os_load_bootcount_file=" \
+               "echo Loading ${os_bc_file} from ${resin_dev_type} device ${resin_dev_index} partition ${resin_boot_part};" \
+               "fatload ${resin_dev_type} ${resin_dev_index}:${resin_boot_part} ${resin_kernel_load_addr} ${os_bc_file};\0" \
        \
        "resin_import_env_file=" \
                "echo Import ${resin_env_file} in environment;" \
                "env import -t ${resin_kernel_load_addr} ${filesize}\0" \
+       \
+       "os_import_bootcount_file=" \
+               "echo Import ${os_bc_file} in environment;" \
+               "env import -t ${resin_kernel_load_addr} ${filesize}\0" \
+       \
+       "os_inc_bc_save=" \
+              "if test ${os_bc_skip} = 0 && test ${os_bc_inced} = 0 && test ${upgrade_available} = 1; then " \
+                     "setexpr bootcount ${bootcount} + 1;" \
+		     "env set os_bc_inced 1;" \
+                     "echo bootcount=${bootcount} now;" \
+                     "env export -t ${resin_kernel_load_addr} bootcount;" \
+                     "fatwrite ${resin_dev_type} ${resin_dev_index}:${resin_boot_part} ${resin_kernel_load_addr} ${os_bc_file} 0xd;" \
+                     "echo bootcount=${bootcount} written to ${resin_dev_type} ${resin_dev_index}:${resin_boot_part} ${os_bc_file};" \
+              "fi;\0" \
        \
        "resin_flasher_detect=" \
                "fatload ${resin_scan_dev_type} ${resin_scan_dev_index}:${resin_boot_part} ${resin_kernel_load_addr} ${resin_flasher_flag_file};\0" \
@@ -79,19 +100,28 @@
        "resin_inject_env_file=" \
                "if run resin_load_env_file; then " \
                        "run resin_import_env_file;" \
+               "fi;" \
+               "if run os_load_bootcount_file; then " \
+                       "run os_import_bootcount_file;" \
+               "else; " \
+                       "echo No bootcount.env file. Setting bootcount=0 in environment;" \
+                       "env set bootcount 0;" \
                "fi;\0" \
        \
        "resin_check_altroot=" \
               "setexpr resin_roota ${resin_boot_part} + 1; " \
               "setexpr resin_rootb ${resin_boot_part} + 2; " \
-              "if test -n ${bootlimit}; then " \
-                      "if test ${bootcount} -gt ${bootlimit}; then " \
-                               "echo WARNING! BOOTLIMIT EXCEEDED. SWITCHING TO PREVIOUS ROOTFS; " \
-                               "if test ${resin_root_part} -eq ${resin_roota}; then "\
+              "run os_inc_bc_save;" \
+              "if test -n ${os_bc_lim}; then " \
+                      "if test ${bootcount} -gt ${os_bc_lim}; then " \
+                               "echo WARNING! BOOTLIMIT EXCEEDED. SWITCHING; " \
+			       "echo WARNING! was: resin_root_part=${resin_root_part};" \
+                               "if test ${resin_root_part} = ${resin_roota}; then "\
                                        "env set resin_root_part ${resin_rootb}; " \
-                                "else; "\
+                               "else; "\
                                        "env set resin_root_part ${resin_roota}; " \
-                                "fi;" \
+                               "fi;" \
+			       "echo WARNING! now: resin_root_part=${resin_root_part};" \
                       "fi;" \
               "fi;\0" \
        \
