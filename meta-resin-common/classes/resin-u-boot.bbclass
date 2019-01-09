@@ -40,3 +40,10 @@ EOF
     cp ${WORKDIR}/env_resin.h ${S}/include/env_resin.h
 }
 addtask do_generate_resin_uboot_configuration after do_patch before do_configure
+
+do_check_uboot_configuration () {
+    if ! grep -q "CONFIG_CMD_SETEXPR=y" ${B}/.config ; then
+        bbwarn "ERROR: CONFIG_CMD_SETEXPR must be enabled in u-boot config for rollbacks"
+    fi
+}
+addtask do_check_uboot_configuration after do_compile before do_install
