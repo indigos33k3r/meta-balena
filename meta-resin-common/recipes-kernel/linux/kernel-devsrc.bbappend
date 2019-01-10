@@ -18,3 +18,6 @@ INSANE_SKIP_${PN} = "arch debug-files"
 # We'd like to make sure that we dont tarball at the same time as that
 # recipe is working on the tree
 DEPENDS += "kernel-modules-headers"
+
+# We delete the task to avoid spurious manifest and log_check warnings
+deltask do_populate_sysroot
